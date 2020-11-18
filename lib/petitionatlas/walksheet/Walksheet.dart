@@ -1,10 +1,18 @@
+import 'dart:convert';
+import 'dart:js';
+
 import 'package:flutter/material.dart';
+import 'package:godashdemo/petitionatlas/response/walksheetresponse/walksheet_response.dart';
+import 'package:http/http.dart' as http;
+import 'package:shared_preferences/shared_preferences.dart';
 
 class Walksheet extends StatefulWidget {
   WalksheetState createState() => WalksheetState();
 }
 
 class WalksheetState extends State<Walksheet> {
+  WalksheetResponse walksheetResponse;
+
   @override
   Widget build(BuildContext context) {
     Future<bool> _onBackPressed() {
@@ -366,14 +374,37 @@ class WalksheetState extends State<Walksheet> {
       ),
     );
   }
-}
 
-Color _getColorFromHex(String hexColor) {
-  hexColor = hexColor.replaceAll("#", "");
-  if (hexColor.length == 6) {
-    hexColor = "FF" + hexColor;
+  Color _getColorFromHex(String hexColor) {
+    hexColor = hexColor.replaceAll("#", "");
+    if (hexColor.length == 6) {
+      hexColor = "FF" + hexColor;
+    }
+    if (hexColor.length == 8) {
+      return Color(int.parse("0x$hexColor"));
+    }
   }
-  if (hexColor.length == 8) {
-    return Color(int.parse("0x$hexColor"));
+
+  Future<WalksheetResponse> walksheetapi(String id, String token) async {
+    Map<String, String> headers = {'authorization': 'Bearer ' + token};
+
+    var response1 = await http.get(
+        'https://petitionatlas.com/campaigns/mobile/dashboard/' + id,
+        headers: headers);
+
+    if (response1.statusCode == 200) {
+      // If the call to the server was successful (returns OK), parse the JSON.
+      print("success");
+      // Navigator.pop(context);
+
+      SharedPreferences prefs = await SharedPreferences.getInstance();
+      Map json = jsonDecode(response1.body);
+      walksheetResponse = WalksheetResponse.fromJson(json);
+      setState(() {});
+    } else {
+      // If that call was not successful (response was unexpected), it throw an error.
+      // Navigator.pop(context);
+      throw Exception('Failed to load post');
+    }
   }
 }

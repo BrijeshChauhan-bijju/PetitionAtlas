@@ -91,7 +91,7 @@ class DashboardState extends State<Dashboard> {
     final totalvotersans = Text(
       ans1,
       style: TextStyle(
-          color: _getColorFromHex("#757575"),
+          color: _getColorFromHex("#128598"),
           fontSize: 18,
           fontWeight: FontWeight.bold),
     );
@@ -128,7 +128,7 @@ class DashboardState extends State<Dashboard> {
     final targetsignans = Text(
       ans2,
       style: TextStyle(
-          color: _getColorFromHex("#757575"),
+          color:_getColorFromHex("#128598"),
           fontSize: 18,
           fontWeight: FontWeight.bold),
     );
@@ -165,7 +165,7 @@ class DashboardState extends State<Dashboard> {
     final totalcollectedans = Text(
       ans3,
       style: TextStyle(
-          color: _getColorFromHex("#757575"),
+          color: _getColorFromHex("#128598"),
           fontSize: 18,
           fontWeight: FontWeight.bold),
     );
@@ -200,13 +200,13 @@ class DashboardState extends State<Dashboard> {
         children: <Widget>[
           LinearProgressIndicator(
             backgroundColor: Colors.grey,
-            value: percentage,
+            value: percentage/100,
             valueColor:
                 new AlwaysStoppedAnimation<Color>(_getColorFromHex("#128598")),
           ),
           Text(
-            // int.tryParse(.toString().split('.')[1].substring(0,4)) + " %",
-            "",
+            percentage.toStringAsFixed(0) + " %",
+            // "",
           )
         ],
       ),
@@ -626,6 +626,7 @@ class DashboardState extends State<Dashboard> {
       dashboardresponse = DashboardResponse.fromJson(json);
       setState(() {
         var multiple = dashboardresponse.collectedSignaturesCount * 100;
+        // percentage = 20;
         percentage = multiple / dashboardresponse.targetedSignaturesCount;
         ans1 = dashboardresponse.registeredVotersCount.toString();
         ans2 = dashboardresponse.targetedSignaturesCount.toString();
