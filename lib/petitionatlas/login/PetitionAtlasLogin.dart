@@ -255,12 +255,18 @@ class LoginState extends State<Login> {
       print("success");
       Navigator.pop(context);
 
-      Loginresponsse loginresponsse =response as Loginresponsse;
-
-      print("succ "+loginresponsse.username);
-
-      return Loginresponsse.fromJson(jsonDecode(response.body));
-
+      // Loginresponsse loginresponsse =response as Loginresponsse;
+      //
+      // print("succ "+loginresponsse.username);
+      SharedPreferences prefs = await SharedPreferences.getInstance();
+      Map json = jsonDecode(response.body);
+      String user = jsonEncode(Loginresponsse.fromJson(json));
+      prefs.setString('logindata', user);
+      // return Loginresponsse.fromJson(jsonDecode(response.body));
+      Navigator.pushNamed(
+        context,
+        '/dashboard',
+      );
     } else {
       // If that call was not successful (response was unexpected), it throw an error.
       Navigator.pop(context);
@@ -268,8 +274,4 @@ class LoginState extends State<Login> {
     }
   }
 
-  addStringToSF() async {
-    SharedPreferences prefs = await SharedPreferences.getInstance();
-    prefs.setString('stringValue', "abc");
-  }
 }

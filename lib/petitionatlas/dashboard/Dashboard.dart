@@ -1,20 +1,46 @@
+import 'dart:convert';
+
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_animation_progress_bar/flutter_animation_progress_bar.dart';
 import 'package:flutter/widgets.dart';
 import 'package:godashdemo/petitionatlas/params/Loginparams.dart';
+import 'package:godashdemo/petitionatlas/response/dashboardresponse/dashboard_response.dart';
+import 'package:godashdemo/petitionatlas/response/loginresponse/Loginresponsse.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:http/http.dart' as http;
 
 class Dashboard extends StatefulWidget {
   DashboardState createState() => DashboardState();
 }
 
 class DashboardState extends State<Dashboard> {
-  Loginresponsse data;
+  Loginresponsse user;
+  DashboardResponse dashboardresponse;
+  String username1 = "";
+  bool isadmin = false;
+  String maincampaignname = "";
+  String ans1 = "";
+  String ans2 = "";
+  String ans3 = "";
+  double percentage = 0;
+
+  @override
+  void initState() {
+    super.initState();
+    getsharedprefences();
+  }
 
   @override
   Widget build(BuildContext context) {
-    data = ModalRoute.of(context).settings.arguments;
     var _scaffoldKey = new GlobalKey<ScaffoldState>();
+    // getsharedprefences();
+    // print("user " + user.username);
+    // if (user != null && user.id != '' && user.tokens.accessToken != null) {
+    //   _showLoaderDialog(context);
+    //
+    //   dashboardapi(user.id.toString(), user.tokens.accessToken);
+    // }
     final image = Image.asset(
       'images/voteratlas.png',
       width: 200.0,
@@ -30,13 +56,13 @@ class DashboardState extends State<Dashboard> {
     );
 
     final username = Text(
-      "Demo One "+data.username,
+      username1,
       style: TextStyle(
           color: _getColorFromHex("#757575"),
           fontSize: 18,
           fontWeight: FontWeight.bold),
     );
-
+    // print("user " + user.username);
     final usernameandlogo = Container(
       child: new Row(children: <Widget>[
         userlogo,
@@ -63,7 +89,7 @@ class DashboardState extends State<Dashboard> {
     );
 
     final totalvotersans = Text(
-      "16954",
+      ans1,
       style: TextStyle(
           color: _getColorFromHex("#757575"),
           fontSize: 18,
@@ -100,7 +126,7 @@ class DashboardState extends State<Dashboard> {
     );
 
     final targetsignans = Text(
-      "270",
+      ans2,
       style: TextStyle(
           color: _getColorFromHex("#757575"),
           fontSize: 18,
@@ -137,7 +163,7 @@ class DashboardState extends State<Dashboard> {
     );
 
     final totalcollectedans = Text(
-      "1",
+      ans3,
       style: TextStyle(
           color: _getColorFromHex("#757575"),
           fontSize: 18,
@@ -174,12 +200,13 @@ class DashboardState extends State<Dashboard> {
         children: <Widget>[
           LinearProgressIndicator(
             backgroundColor: Colors.grey,
-            value: 0.0,
+            value: percentage,
             valueColor:
                 new AlwaysStoppedAnimation<Color>(_getColorFromHex("#128598")),
           ),
           Text(
-            "1 %",
+            // int.tryParse(.toString().split('.')[1].substring(0,4)) + " %",
+            "",
           )
         ],
       ),
@@ -201,16 +228,20 @@ class DashboardState extends State<Dashboard> {
         child: Column(
           children: <Widget>[
             Text(
-              "demoadmin1",
+              username1,
               style: TextStyle(color: Colors.white),
             ),
             SizedBox(
               height: 10,
             ),
-            Text(
-              "Administrator",
-              style: TextStyle(color: Colors.white),
-            )
+            Container(
+                child: Visibility(
+              child: Text(
+                "Administrator",
+                style: TextStyle(color: Colors.white),
+              ),
+              visible: isadmin,
+            ))
           ],
         ));
 
@@ -349,7 +380,7 @@ class DashboardState extends State<Dashboard> {
                       );
                     },
                     child: Text(
-                      "Demo One",
+                      maincampaignname,
                       style: TextStyle(
                         fontSize: 14.0,
                       ),
@@ -557,5 +588,72 @@ class DashboardState extends State<Dashboard> {
     if (hexColor.length == 8) {
       return Color(int.parse("0x$hexColor"));
     }
+  }
+
+  getsharedprefences() async {
+    SharedPreferences sp = await SharedPreferences.getInstance();
+    Map json = jsonDecode(sp.getString('logindata'));
+    user = Loginresponsse.fromJson(json);
+    setState(() {
+      username1 = user.username;
+      maincampaignname = user.mainCampaignName;
+      isadmin = user.isAdmin;
+      _showLoaderDialog(context);
+      new Future.delayed(const Duration(seconds: 5), () {
+        print(user.id.toString());
+        print(user.tokens.accessToken);
+        dashboardapi(user.mainCampaignId.toString(), user.tokens.accessToken);
+      });
+    });
+
+    // setState(() {});
+  }
+
+  Future<DashboardResponse> dashboardapi(String id, String token) async {
+    Map<String, String> headers = {'authorization': 'Bearer ' + token};
+
+    var response1 = await http.get(
+        'https://petitionatlas.com/campaigns/mobile/dashboard/' + id,
+        headers: headers);
+
+    if (response1.statusCode == 200) {
+      // If the call to the server was successful (returns OK), parse the JSON.
+      print("success");
+      Navigator.pop(context);
+
+      SharedPreferences prefs = await SharedPreferences.getInstance();
+      Map json = jsonDecode(response1.body);
+      dashboardresponse = DashboardResponse.fromJson(json);
+      setState(() {
+        var multiple = dashboardresponse.collectedSignaturesCount * 100;
+        percentage = multiple / dashboardresponse.targetedSignaturesCount;
+        ans1 = dashboardresponse.registeredVotersCount.toString();
+        ans2 = dashboardresponse.targetedSignaturesCount.toString();
+        ans3 = dashboardresponse.collectedSignaturesCount.toString();
+      });
+    } else {
+      // If that call was not successful (response was unexpected), it throw an error.
+      // Navigator.pop(context);
+      throw Exception('Failed to load post');
+    }
+  }
+
+  CircularProgressIndicator _showLoaderDialog(BuildContext context) {
+    AlertDialog alert = AlertDialog(
+      content: new Row(
+        children: [
+          CircularProgressIndicator(),
+          Container(
+              margin: EdgeInsets.only(left: 7), child: Text("Loading...")),
+        ],
+      ),
+    );
+    showDialog(
+      barrierDismissible: false,
+      context: context,
+      builder: (BuildContext context) {
+        return alert;
+      },
+    );
   }
 }

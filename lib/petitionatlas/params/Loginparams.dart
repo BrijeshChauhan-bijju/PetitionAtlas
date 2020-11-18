@@ -1,4 +1,4 @@
-class Loginresponsse {
+class LoginParams {
   String username;
   String password;
 }
