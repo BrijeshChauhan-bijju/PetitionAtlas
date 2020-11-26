@@ -40,6 +40,7 @@ dev_dependencies:
   flutter_animation_progress_bar: ^1.0.6
   flutter_rating_bar: ^3.2.0
   shared_preferences: ^0.5.12+4
+  hand_signature: ^0.6.3
 # For information on the generic Dart part of this file, see the
 # following page: https://dart.dev/tools/pub/pubspec
 
@@ -69,6 +70,7 @@ flutter:
     - images/logout.png
     - images/user.png
     - images/anchor.png
+    - images/whitespashscreen.png
   # To add assets to your application, add an assets section, like this:
   # assets:
   #   - images/a_dot_burr.jpeg

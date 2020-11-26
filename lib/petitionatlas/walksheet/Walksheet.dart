@@ -1,8 +1,9 @@
 import 'dart:convert';
-import 'dart:js';
 
 import 'package:flutter/material.dart';
+import 'package:godashdemo/petitionatlas/response/loginresponse/Loginresponsse.dart';
 import 'package:godashdemo/petitionatlas/response/walksheetresponse/walksheet_response.dart';
+import 'package:godashdemo/petitionatlas/response/walksheetstreetresponse/Street_response.dart';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -12,6 +13,29 @@ class Walksheet extends StatefulWidget {
 
 class WalksheetState extends State<Walksheet> {
   WalksheetResponse walksheetResponse;
+  static List<StreetResponse> streetResponse = new List<StreetResponse>();
+  Loginresponsse user;
+  String token, maincampaignid;
+  List countylist = ["Select County"],
+      citylist = ["Select City"],
+      pctlist = ["Select Pct"],
+      wardlist = ["Select Ward"];
+  String _countydropDownValue,
+      _citydropDownValue,
+      _pctdropDownValue,
+      _warddropDownValue;
+
+  // static var walksheetstreet;
+
+  TextEditingController streetController = TextEditingController();
+  TextEditingController startblockController = TextEditingController();
+  TextEditingController endblockController = TextEditingController();
+
+  @override
+  void initState() {
+    super.initState();
+    getsharedprefences();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -28,7 +52,6 @@ class WalksheetState extends State<Walksheet> {
       child: Text("COUNTY"),
     );
 
-    String _countydropDownValue;
     final countydropdown = Container(
         padding: EdgeInsets.fromLTRB(20, 0, 20, 0),
         decoration: BoxDecoration(
@@ -37,18 +60,14 @@ class WalksheetState extends State<Walksheet> {
         margin: EdgeInsets.fromLTRB(0, 5, 0, 0),
         child: DropdownButtonHideUnderline(
             child: DropdownButton(
-          hint: _countydropDownValue == null
-              ? Text('Select County')
-              : Text(
-                  _countydropDownValue,
-                  style: TextStyle(color: Colors.black),
-                ),
+          hint: Text('Select County'),
+          value: _countydropDownValue,
           isExpanded: true,
           iconSize: 30.0,
           style: TextStyle(color: Colors.black),
-          items: ['One', 'Two', 'Three'].map(
+          items: countylist.map(
             (val) {
-              return DropdownMenuItem<String>(
+              return DropdownMenuItem(
                 value: val,
                 child: Text(val),
               );
@@ -68,7 +87,6 @@ class WalksheetState extends State<Walksheet> {
       child: Text("CITY"),
     );
 
-    String _citydropDownValue;
     final citydropdown = Container(
         padding: EdgeInsets.fromLTRB(20, 0, 20, 0),
         decoration: BoxDecoration(
@@ -77,27 +95,23 @@ class WalksheetState extends State<Walksheet> {
         margin: EdgeInsets.fromLTRB(0, 5, 0, 0),
         child: DropdownButtonHideUnderline(
             child: DropdownButton(
-          hint: _citydropDownValue == null
-              ? Text('Select City')
-              : Text(
-                  _citydropDownValue,
-                  style: TextStyle(color: Colors.black),
-                ),
+          hint: Text('Select City'),
+          value: _citydropDownValue,
           isExpanded: true,
           iconSize: 30.0,
           style: TextStyle(color: Colors.black),
-          items: ['One', 'Two', 'Three'].map(
-            (val) {
-              return DropdownMenuItem<String>(
-                value: val,
-                child: Text(val),
+          items: citylist.map<DropdownMenuItem>(
+            (value) {
+              return DropdownMenuItem(
+                value: value,
+                child: Text(value),
               );
             },
           ).toList(),
-          onChanged: (val) {
+          onChanged: (value) {
             setState(
               () {
-                _citydropDownValue = val;
+                _citydropDownValue = value;
               },
             );
           },
@@ -108,7 +122,6 @@ class WalksheetState extends State<Walksheet> {
       child: Text("WARD"),
     );
 
-    String _warddropDownValue;
     final warddropdown = Container(
         padding: EdgeInsets.fromLTRB(20, 0, 20, 0),
         decoration: BoxDecoration(
@@ -117,18 +130,14 @@ class WalksheetState extends State<Walksheet> {
         margin: EdgeInsets.fromLTRB(0, 5, 0, 0),
         child: DropdownButtonHideUnderline(
             child: DropdownButton(
-          hint: _warddropDownValue == null
-              ? Text('Select Ward')
-              : Text(
-                  _warddropDownValue,
-                  style: TextStyle(color: Colors.black),
-                ),
+          hint: Text('Select Ward'),
+          value: _warddropDownValue,
           isExpanded: true,
           iconSize: 30.0,
           style: TextStyle(color: Colors.black),
-          items: ['One', 'Two', 'Three'].map(
+          items: wardlist.map(
             (val) {
-              return DropdownMenuItem<String>(
+              return DropdownMenuItem(
                 value: val,
                 child: Text(val),
               );
@@ -148,7 +157,6 @@ class WalksheetState extends State<Walksheet> {
       child: Text("PCT"),
     );
 
-    String _pctdropDownValue;
     final pctdropdown = Container(
         padding: EdgeInsets.fromLTRB(20, 0, 20, 0),
         decoration: BoxDecoration(
@@ -157,18 +165,14 @@ class WalksheetState extends State<Walksheet> {
         margin: EdgeInsets.fromLTRB(0, 5, 0, 0),
         child: DropdownButtonHideUnderline(
             child: DropdownButton(
-          hint: _pctdropDownValue == null
-              ? Text('Select Pct')
-              : Text(
-                  _pctdropDownValue,
-                  style: TextStyle(color: Colors.black),
-                ),
+          hint: Text('Select Pct'),
+          value: _pctdropDownValue,
           isExpanded: true,
           iconSize: 30.0,
           style: TextStyle(color: Colors.black),
-          items: ['One', 'Two', 'Three'].map(
+          items: pctlist.map(
             (val) {
-              return DropdownMenuItem<String>(
+              return DropdownMenuItem(
                 value: val,
                 child: Text(val),
               );
@@ -209,7 +213,6 @@ class WalksheetState extends State<Walksheet> {
       child: Text("START BLOCK"),
     );
 
-    String _startblockdropDownValue;
     final startblockdropdown = Container(
       padding: EdgeInsets.fromLTRB(20, 0, 20, 0),
       decoration: BoxDecoration(
@@ -217,6 +220,7 @@ class WalksheetState extends State<Walksheet> {
           borderRadius: BorderRadius.all(Radius.circular(5))),
       margin: EdgeInsets.fromLTRB(0, 5, 0, 0),
       child: TextFormField(
+          controller: startblockController,
           cursorColor: _getColorFromHex("#128598"),
           decoration: InputDecoration(
             border: InputBorder.none,
@@ -235,7 +239,6 @@ class WalksheetState extends State<Walksheet> {
       child: Text("END BLOCK"),
     );
 
-    String _endblockdropDownValue;
     final endblockdropdown = Container(
       padding: EdgeInsets.fromLTRB(20, 0, 20, 0),
       decoration: BoxDecoration(
@@ -243,6 +246,7 @@ class WalksheetState extends State<Walksheet> {
           borderRadius: BorderRadius.all(Radius.circular(5))),
       margin: EdgeInsets.fromLTRB(0, 5, 0, 0),
       child: TextFormField(
+          controller: endblockController,
           cursorColor: _getColorFromHex("#128598"),
           decoration: InputDecoration(
             border: InputBorder.none,
@@ -290,6 +294,7 @@ class WalksheetState extends State<Walksheet> {
           borderRadius: BorderRadius.all(Radius.circular(5))),
       margin: EdgeInsets.fromLTRB(0, 5, 0, 0),
       child: TextFormField(
+          controller: streetController,
           cursorColor: _getColorFromHex("#128598"),
           decoration: InputDecoration(
             border: InputBorder.none,
@@ -314,10 +319,8 @@ class WalksheetState extends State<Walksheet> {
         textColor: Colors.white,
         padding: EdgeInsets.all(15),
         onPressed: () {
-          Navigator.pushNamed(
-            context,
-            '/selectvoter',
-          );
+          _showLoaderDialog(context);
+          walksheetstreetapi();
         },
         child: Text(
           "Go to Address".toUpperCase(),
@@ -385,25 +388,132 @@ class WalksheetState extends State<Walksheet> {
     }
   }
 
-  Future<WalksheetResponse> walksheetapi(String id, String token) async {
+  CircularProgressIndicator _showLoaderDialog(BuildContext context) {
+    AlertDialog alert = AlertDialog(
+      content: new Row(
+        children: [
+          CircularProgressIndicator(),
+          Container(
+              margin: EdgeInsets.only(left: 7), child: Text("Loading...")),
+        ],
+      ),
+    );
+    showDialog(
+      barrierDismissible: false,
+      context: context,
+      builder: (BuildContext context) {
+        return alert;
+      },
+    );
+  }
+
+  getsharedprefences() async {
+    SharedPreferences sp = await SharedPreferences.getInstance();
+    Map json = jsonDecode(sp.getString('logindata'));
+    user = Loginresponsse.fromJson(json);
+    setState(() {
+      _showLoaderDialog(context);
+
+      token = user.tokens.accessToken;
+      maincampaignid = user.mainCampaignId.toString();
+      new Future.delayed(const Duration(seconds: 5), () {
+        walksheetapi();
+      });
+    });
+  }
+
+  Future<WalksheetResponse> walksheetapi() async {
     Map<String, String> headers = {'authorization': 'Bearer ' + token};
 
     var response1 = await http.get(
-        'https://petitionatlas.com/campaigns/mobile/dashboard/' + id,
+        'https://petitionatlas.com/walksheets/csv/precinct/options/' +
+            maincampaignid,
         headers: headers);
 
     if (response1.statusCode == 200) {
       // If the call to the server was successful (returns OK), parse the JSON.
       print("success");
-      // Navigator.pop(context);
+      Navigator.pop(context);
 
-      SharedPreferences prefs = await SharedPreferences.getInstance();
       Map json = jsonDecode(response1.body);
       walksheetResponse = WalksheetResponse.fromJson(json);
-      setState(() {});
+      setState(() {
+        for (var countyname in walksheetResponse.countyOptions) {
+          countylist.add(countyname.name);
+
+          for (var cityname in countyname.cityOptions) {
+            citylist.add(cityname.name);
+            for (var wardname in cityname.wardOptions) {
+              wardlist.add(wardname.name);
+              pctlist.addAll(wardname.precinctNames);
+            }
+          }
+        }
+      });
     } else {
       // If that call was not successful (response was unexpected), it throw an error.
-      // Navigator.pop(context);
+      Navigator.pop(context);
+      throw Exception('Failed to load post');
+    }
+  }
+
+  Future<StreetResponse> walksheetstreetapi() async {
+    Map<String, String> headers = {'authorization': 'Bearer ' + token};
+    String startblock = "0";
+    String endblock = "0";
+    if (startblockController.value.text != null &&
+        startblockController.value.text.trim().length > 0) {
+      startblock = startblockController.value.text;
+    }
+    if (endblockController.value.text != null &&
+        endblockController.value.text.trim().length > 0) {
+      endblock = endblockController.value.text;
+    }
+
+    var queryParameters = {
+      'county': _countydropDownValue,
+      'city': _citydropDownValue,
+      'street': streetController.value.text,
+      'ward': _warddropDownValue,
+      'precinct': _pctdropDownValue,
+      'startblock': startblock,
+      'endblock': endblock
+    };
+    var uri = Uri.https('petitionatlas.com',
+        '/walksheets/mobile/street/' + maincampaignid, queryParameters);
+
+    var response = await http.get(
+      uri,
+      headers: headers,
+    );
+
+    if (response.statusCode == 200) {
+      // If the call to the server was successful (returns OK), parse the JSON.
+      print("success");
+      Navigator.pop(context);
+      // print(response.body);
+      List<dynamic> values = json.decode(response.body);
+      if (values.length > 0) {
+        Map<String, dynamic> map;
+        for (int i = 0; i < values.length; i++) {
+          if (values[i] != null) {
+            map = values[i];
+            streetResponse.add(StreetResponse.fromJson(map));
+            // print('Id-------${map['id']}');
+          }
+        }
+      }
+
+      SharedPreferences prefs = await SharedPreferences.getInstance();
+      prefs.setString("token", token);
+
+      Navigator.pushNamed(
+        context,
+        '/selectvoter',
+      );
+    } else {
+      // If that call was not successful (response was unexpected), it throw an error.
+      Navigator.pop(context);
       throw Exception('Failed to load post');
     }
   }

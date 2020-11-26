@@ -128,7 +128,7 @@ class DashboardState extends State<Dashboard> {
     final targetsignans = Text(
       ans2,
       style: TextStyle(
-          color:_getColorFromHex("#128598"),
+          color: _getColorFromHex("#128598"),
           fontSize: 18,
           fontWeight: FontWeight.bold),
     );
@@ -200,7 +200,7 @@ class DashboardState extends State<Dashboard> {
         children: <Widget>[
           LinearProgressIndicator(
             backgroundColor: Colors.grey,
-            value: percentage/100,
+            value: percentage / 100,
             valueColor:
                 new AlwaysStoppedAnimation<Color>(_getColorFromHex("#128598")),
           ),
@@ -443,7 +443,12 @@ class DashboardState extends State<Dashboard> {
                 Container(
                   alignment: Alignment.topCenter,
                   child: new GestureDetector(
-                    onTap: () {},
+                    onTap: () {
+                      Navigator.pushNamed(
+                        context,
+                        '/addcontact',
+                      );
+                    },
                     child: new Column(
                       children: <Widget>[
                         addcontacticon,
@@ -463,7 +468,12 @@ class DashboardState extends State<Dashboard> {
                 Container(
                   alignment: Alignment.topCenter,
                   child: new GestureDetector(
-                    onTap: () {},
+                    onTap: () {
+                      Navigator.pushNamed(
+                        context,
+                        '/searchvoter',
+                      );
+                    },
                     child: new Column(
                       children: <Widget>[
                         searchvotericon,
@@ -634,7 +644,7 @@ class DashboardState extends State<Dashboard> {
       });
     } else {
       // If that call was not successful (response was unexpected), it throw an error.
-      // Navigator.pop(context);
+      Navigator.pop(context);
       throw Exception('Failed to load post');
     }
   }
